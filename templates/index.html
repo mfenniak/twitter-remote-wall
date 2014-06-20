@@ -8,6 +8,23 @@
     <body>
 
 
+        <script src="http://cdn.sockjs.org/sockjs-0.3.min.js"></script>
+        <script type="text/javascript">
+
+var sock = new SockJS('/search');
+sock.onopen = function() {
+    console.log('SockJS open');
+};
+
+sock.onmessage = function(e) {
+    console.log('SockJS message', e.data);
+};
+
+sock.onclose = function() {
+    console.log('SockJSclose');
+};
+
+        </script>
 
     </body>
 </html>

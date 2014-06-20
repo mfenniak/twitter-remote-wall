@@ -3,11 +3,12 @@ Jinja2==2.7.3
 MarkupSafe==0.23
 Werkzeug==0.9.6
 argparse==1.2.1
+backports.ssl-match-hostname==3.4.0.2
 birdy==0.2
-freeze==0.8.0
 itsdangerous==0.24
 oauthlib==0.6.3
 requests==2.3.0
 requests-oauthlib==0.4.1
-six==1.7.2
+sockjs-tornado==1.0.0
+tornado==3.2.2
 wsgiref==0.1.2
