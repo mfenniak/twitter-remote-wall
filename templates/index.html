@@ -3,26 +3,54 @@
 <html>
     <head>
         <title>Twitter Magic</title>
+        <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
     </head>
 
     <body>
 
-        <!-- ko foreach: tweets -->
-        <blockquote class="twitter-tweet" lang="en">
-            <p data-bind="text: text">Text...</p>
-            &mdash; <!-- ko text: user.name --><!-- /ko --> (@<!-- ko text: user.screen_name --><!-- /ko -->)
-            <a data-bind="attr: { href: 'https://twitter.com/' + user.screen_name + '/statuses/' + id_str }, text: created_at">...</a>
-        </blockquote>
-        <!-- /ko -->
+        <div class="container-fluid">
 
+            <!-- ko foreach: rows -->
+                <div class="row">
+
+                <!-- ko foreach: cells -->
+                    <div class="col-lg-2">
+                        <img data-bind="attr { src: user.profile_image_url }" width="48" height="48" class="pull-left">
+                        <span data-bind="text: user.name">Mathieu Fenniak</span> (@<span data-bind="text: user.screen_name">mfenniak</span>)
+                        <p style="clear: both" data-bind="text: text">Text...</p>
+                    </div>
+                <!-- /ko -->
+
+                </div>
+            <!-- /ko -->
+
+        </div>
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
         <script src="http://cdn.sockjs.org/sockjs-0.3.min.js"></script>
         <script src="http://cdnjs.cloudflare.com/ajax/libs/knockout/3.1.0/knockout-min.js"></script>
-        <script src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+        <script src="{{ url_for('static', filename='js/bootstrap.min.js') }} "></script>
         <script type="text/javascript">
 
 function Model() {
     var self = this;
     self.tweets = ko.observableArray([]);
+    self.rows = ko.computed(function() {
+        var row_width = 6;
+        var rows = [];
+        var row = {"cells": []};
+        self.tweets().forEach(function(t) {
+            row.cells.push(t);
+            if (row.cells.length == row_width) {
+                rows.push(row);
+                row = {"cells": []};
+            }
+        });
+        if (row.cells.length != 0) {
+            rows.push(row);
+        }
+        return rows;
+    });
 }
 var model = new Model();
 
@@ -34,10 +62,9 @@ sock.onopen = function() {
 sock.onmessage = function(e) {
     var tweet = JSON.parse(e.data);
     model.tweets.push(tweet);
-    while (model.tweets().length > 20) {
+    while (model.tweets().length > 24) {
         model.tweets.shift();
     }
-    twttr.widgets.load();
 };
 
 sock.onclose = function() {
