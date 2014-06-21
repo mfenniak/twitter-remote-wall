@@ -14,10 +14,10 @@
                 <div class="row">
 
                 <!-- ko foreach: cells -->
-                    <div class="col-lg-2">
-                        <img data-bind="attr { src: user.profile_image_url }" width="48" height="48" class="pull-left">
-                        <span data-bind="text: user.name">Mathieu Fenniak</span> (@<span data-bind="text: user.screen_name">mfenniak</span>)
-                        <p style="clear: both" data-bind="text: text">Text...</p>
+                    <div class="col-lg-3">
+                        <img data-bind="attr { src: user.profile_image_url }" width="48" height="48" class="pull-left" style="padding-right: 1em">
+                        <div data-bind="text: user.name">Mathieu Fenniak</div> <div data-bind="text: '@' + user.screen_name">mfenniak</div>
+                        <p style="clear: both; font-size: 125%" data-bind="text: text">Text...</p>
                     </div>
                 <!-- /ko -->
 
@@ -36,7 +36,7 @@ function Model() {
     var self = this;
     self.tweets = ko.observableArray([]);
     self.rows = ko.computed(function() {
-        var row_width = 6;
+        var row_width = 4;
         var rows = [];
         var row = {"cells": []};
         self.tweets().forEach(function(t) {
@@ -56,19 +56,17 @@ var model = new Model();
 
 var sock = new SockJS('/search');
 sock.onopen = function() {
-    console.log('SockJS open');
 };
 
 sock.onmessage = function(e) {
     var tweet = JSON.parse(e.data);
-    model.tweets.push(tweet);
-    while (model.tweets().length > 24) {
-        model.tweets.shift();
+    model.tweets.unshift(tweet);
+    while (model.tweets().length > 16) {
+        model.tweets.pop();
     }
 };
 
 sock.onclose = function() {
-    console.log('SockJSclose');
 };
 
 ko.applyBindings(model);
