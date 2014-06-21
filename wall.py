@@ -1,6 +1,6 @@
 from birdy.twitter import StreamClient, TwitterRateLimitError
 from config import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET
-from flask import Flask, render_template
+from flask import Flask, render_template, send_from_directory
 from sockjs.tornado import SockJSRouter, SockJSConnection
 from threading import Event
 from tornado.ioloop import IOLoop
@@ -8,6 +8,7 @@ from tornado.web import FallbackHandler, Application
 from tornado.wsgi import WSGIContainer
 import json
 import time
+import os
 
 ### SockJS section...
 
@@ -35,12 +36,16 @@ class SearchConnection(SockJSConnection):
 
 ### Flask UI section...
 
-app = Flask(__name__)
+flask_app = Flask(__name__)
 
-@app.route("/")
+@flask_app.route("/")
 def index():
     return render_template("index.html")
 
+@flask_app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(flask_app.root_path, 'static'),
+                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 ### Twitter streaming search thread...
 
@@ -93,6 +98,6 @@ def received_tweet(status):
 ### Combine the SockJS & Flask components...
 SearchRouter = SockJSRouter(SearchConnection, '/search', user_settings = { "sockjs_url": "http://cdn.sockjs.org/sockjs-0.3.min.js" })
 urls = SearchRouter.urls
-flask_wrapper = WSGIContainer(app)
+flask_wrapper = WSGIContainer(flask_app)
 urls.append((r".*", FallbackHandler, dict(fallback=flask_wrapper)))
 app = Application(urls)

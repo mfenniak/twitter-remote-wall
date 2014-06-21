@@ -7,6 +7,7 @@ backports.ssl-match-hostname==3.4.0.2
 birdy==0.2
 itsdangerous==0.24
 oauthlib==0.6.3
+pyflakes==0.8.1
 requests==2.3.0
 requests-oauthlib==0.4.1
 sockjs-tornado==1.0.0
