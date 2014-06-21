@@ -67,13 +67,13 @@ def streaming_search():
                     # Ignore retweets
                     continue
 
-                IOLoop.instance().add_callback(received_tweet, [status])
+                IOLoop.instance().add_callback(received_tweet, status)
 
-                print "%s (@%s) -- %s" % (
-                    status.get("user", {}).get("name", "?"),
-                    status.get("user", {}).get("screen_name", "?"),
-                    status.get("text")
-                )
+                #print "%s (@%s) -- %s" % (
+                #    status.get("user", {}).get("name", "?"),
+                #    status.get("user", {}).get("screen_name", "?"),
+                #    status.get("text")
+                #)
 
         except TwitterRateLimitError:
             print "TwitterRateLimitError -- sleeping for five minutes"
