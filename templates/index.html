@@ -6,7 +6,7 @@
         <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
     </head>
 
-    <body>
+    <body style="padding-top: 1em">
 
         <div class="container-fluid">
 
@@ -61,7 +61,7 @@ sock.onopen = function() {
 sock.onmessage = function(e) {
     var tweet = JSON.parse(e.data);
     model.tweets.unshift(tweet);
-    while (model.tweets().length > 20) {
+    while (model.tweets().length > 24) {
         model.tweets.pop();
     }
 };

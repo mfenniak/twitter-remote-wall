@@ -10,6 +10,22 @@ import json
 import time
 import os
 
+# TODO
+#  * add time since tweet into HTML output
+#  * UI to change streaming search text
+#  * On UI, display what's being searched for, how many tweets are being displayed
+#  * Client-side error handling (SockJS reconnect)
+
+### Tweet processing
+
+def process_status(status):
+    status = dict(status)
+    # Not sure why, but tweets froms treaming search seem to come with HTML-encoded
+    # ampersand entities...
+    status["text"] = status.get("text", "").replace("&amp;", "&")
+    return status
+
+
 ### SockJS section...
 
 open_connections = []
@@ -77,24 +93,19 @@ def streaming_search():
                 t = time.time()
                 if (t - last_tweet) < min_time_between_tweets:
                     continue
-
                 last_tweet = t
-                IOLoop.instance().add_callback(received_tweet, status)
 
-                #print "%s (@%s) -- %s" % (
-                #    status.get("user", {}).get("name", "?"),
-                #    status.get("user", {}).get("screen_name", "?"),
-                #    status.get("text")
-                #)
+                status = process_status(status)
+                IOLoop.instance().add_callback(received_tweet, status)
 
         except TwitterRateLimitError:
             print "TwitterRateLimitError -- sleeping for five minutes"
-            time.sleep(302)
+            time.sleep(300)
             continue
-        #except:
-        #    print "Unknown and unexpected error in streaming search -- sleeping for five minutes"
-        #    time.sleep(303)
-        #    continue
+        except:
+            print "Unknown and unexpected error in streaming search -- sleeping for five seconds and retrying"
+            time.sleep(5)
+            continue
 
 def received_tweet(status):
     status = json.dumps(status)
