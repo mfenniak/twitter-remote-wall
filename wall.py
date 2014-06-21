@@ -145,7 +145,7 @@ def transmit_stats():
     for connection in open_connections:
         connection.send(msg)
 
-stats_callback = PeriodicCallback(transmit_stats, 5000)
+stats_callback = PeriodicCallback(transmit_stats, 7500)
 
 
 ### Combine the SockJS & Flask components...
