@@ -11,7 +11,7 @@
         <div class="container-fluid">
 
             <!-- ko foreach: rows -->
-                <div class="row">
+                <div class="row" style="padding-bottom: 1em">
 
                 <!-- ko foreach: cells -->
                     <div class="col-lg-3">
@@ -61,7 +61,7 @@ sock.onopen = function() {
 sock.onmessage = function(e) {
     var tweet = JSON.parse(e.data);
     model.tweets.unshift(tweet);
-    while (model.tweets().length > 16) {
+    while (model.tweets().length > 20) {
         model.tweets.pop();
     }
 };
