@@ -51,9 +51,11 @@ def favicon():
 
 search_targets = ["#worldcup", "#fra", "#sui"]
 shutdown_event = Event()
+min_time_between_tweets = 5  # minimum number of seconds between tweets
+last_tweet = 0
 
 def streaming_search():
-    global search_targets
+    global search_targets, last_tweet
     search_target = ",".join(search_targets)
     client = StreamClient(CONSUMER_KEY,
                         CONSUMER_SECRET,
@@ -72,6 +74,11 @@ def streaming_search():
                     # Ignore retweets
                     continue
 
+                t = time.time()
+                if (t - last_tweet) < min_time_between_tweets:
+                    continue
+
+                last_tweet = t
                 IOLoop.instance().add_callback(received_tweet, status)
 
                 #print "%s (@%s) -- %s" % (
