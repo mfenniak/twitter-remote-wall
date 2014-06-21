@@ -1,5 +1,5 @@
 from tornado import ioloop
-from wall import app, streaming_search, shutdown_event
+from wall import app, streaming_search, shutdown_event, stats_callback
 from threading import Thread
 import os
 
@@ -10,6 +10,7 @@ app.listen(port, address=bind_addr, xheaders=True)
 search_thread = Thread(target=streaming_search)
 search_thread.start()
 try:
+    stats_callback.start()
     ioloop.IOLoop.instance().start()
 finally:
     shutdown_event.set()

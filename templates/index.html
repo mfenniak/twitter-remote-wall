@@ -26,6 +26,10 @@
 
         </div>
 
+        <div class="pull-right">
+            <div><span data-bind="text: tweets_per_minute">1000</span> tweets/min (<span data-bind="text: displayed_tweets_per_minute">10</span> tweets/min filtered)</div>
+        </div>
+
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
         <script src="http://cdn.sockjs.org/sockjs-0.3.min.js"></script>
         <script src="http://cdnjs.cloudflare.com/ajax/libs/knockout/3.1.0/knockout-min.js"></script>
@@ -35,6 +39,8 @@
 function Model() {
     var self = this;
     self.tweets = ko.observableArray([]);
+    self.tweets_per_minute = ko.observable(0);
+    self.displayed_tweets_per_minute = ko.observable(0);
     self.rows = ko.computed(function() {
         var row_width = 4;
         var rows = [];
@@ -59,10 +65,16 @@ sock.onopen = function() {
 };
 
 sock.onmessage = function(e) {
-    var tweet = JSON.parse(e.data);
-    model.tweets.unshift(tweet);
-    while (model.tweets().length > 24) {
-        model.tweets.pop();
+    var msg = JSON.parse(e.data);
+    if (msg.action == "tweet") {
+        var tweet = msg.tweet;
+        model.tweets.unshift(tweet);
+        while (model.tweets().length > 20) {
+            model.tweets.pop();
+        }
+    } else if (msg.action == "stats") {
+        model.tweets_per_minute(msg.tweets_per_minute);
+        model.displayed_tweets_per_minute(msg.displayed_tweets_per_minute);
     }
 };
 

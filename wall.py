@@ -2,8 +2,8 @@ from birdy.twitter import StreamClient, TwitterRateLimitError
 from config import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET
 from flask import Flask, render_template, send_from_directory
 from sockjs.tornado import SockJSRouter, SockJSConnection
-from threading import Event
-from tornado.ioloop import IOLoop
+from threading import Event, Lock
+from tornado.ioloop import IOLoop, PeriodicCallback
 from tornado.web import FallbackHandler, Application
 from tornado.wsgi import WSGIContainer
 import json
@@ -70,8 +70,12 @@ shutdown_event = Event()
 min_time_between_tweets = 5  # minimum number of seconds between tweets
 last_tweet = 0
 
+stats_lock = Lock()
+tweets_per_minute = 0
+displayed_tweets_per_minute = 0
+
 def streaming_search():
-    global search_targets, last_tweet
+    global search_targets, last_tweet, tweets_per_minute, displayed_tweets_per_minute
     search_target = ",".join(search_targets)
     client = StreamClient(CONSUMER_KEY,
                         CONSUMER_SECRET,
@@ -83,6 +87,10 @@ def streaming_search():
             for status in resource.stream():
                 if shutdown_event.is_set():
                     break
+
+                with stats_lock:
+                    tweets_per_minute += 1
+
                 if status.get("lang") != "en":
                     # Ignore non-English tweets
                     continue
@@ -94,6 +102,9 @@ def streaming_search():
                 if (t - last_tweet) < min_time_between_tweets:
                     continue
                 last_tweet = t
+
+                with stats_lock:
+                    displayed_tweets_per_minute += 1
 
                 status = process_status(status)
                 IOLoop.instance().add_callback(received_tweet, status)
@@ -108,9 +119,25 @@ def streaming_search():
             continue
 
 def received_tweet(status):
-    status = json.dumps(status)
+    msg = {"action": "tweet", "tweet": status}
+    msg = json.dumps(msg)
     for connection in open_connections:
-        connection.send(status)
+        connection.send(msg)
+
+def transmit_stats():
+    global tweets_per_minute, displayed_tweets_per_minute
+    with stats_lock:
+        tpm = tweets_per_minute
+        dtpm = displayed_tweets_per_minute
+        tweets_per_minute = 0
+        displayed_tweets_per_minute = 0
+
+    msg = {"action": "stats", "tweets_per_minute": tpm, "displayed_tweets_per_minute": dtpm}
+    msg = json.dumps(msg)
+    for connection in open_connections:
+        connection.send(msg)
+
+stats_callback = PeriodicCallback(transmit_stats, 60000)
 
 
 ### Combine the SockJS & Flask components...
