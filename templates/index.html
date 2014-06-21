@@ -27,7 +27,7 @@
         </div>
 
         <div class="pull-right">
-            <div><span data-bind="text: tweets_per_minute">1000</span> tweets/min (<span data-bind="text: displayed_tweets_per_minute">10</span> tweets/min filtered)</div>
+            <div><span data-bind="text: Math.round(tweets_per_minute())">1000</span> tweets/min (<span data-bind="text: Math.round(displayed_tweets_per_minute())">10</span> tweets/min filtered)</div>
         </div>
 
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>

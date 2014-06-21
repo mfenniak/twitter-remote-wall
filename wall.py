@@ -9,6 +9,7 @@ from tornado.wsgi import WSGIContainer
 import json
 import time
 import os
+import datetime
 
 # TODO
 #  * add time since tweet into HTML output
@@ -71,6 +72,7 @@ min_time_between_tweets = 5  # minimum number of seconds between tweets
 last_tweet = 0
 
 stats_lock = Lock()
+stats_time = datetime.datetime.utcnow()
 tweets_per_minute = 0
 displayed_tweets_per_minute = 0
 
@@ -125,19 +127,25 @@ def received_tweet(status):
         connection.send(msg)
 
 def transmit_stats():
-    global tweets_per_minute, displayed_tweets_per_minute
+    global tweets_per_minute, displayed_tweets_per_minute, stats_time
     with stats_lock:
         tpm = tweets_per_minute
         dtpm = displayed_tweets_per_minute
+        last_time = stats_time
         tweets_per_minute = 0
         displayed_tweets_per_minute = 0
+        new_time = stats_time = datetime.datetime.utcnow()
+
+    time_delta = (new_time - last_time)
+    tpm = 60 * tpm / time_delta.total_seconds()
+    dtpm = 60 * dtpm / time_delta.total_seconds()
 
     msg = {"action": "stats", "tweets_per_minute": tpm, "displayed_tweets_per_minute": dtpm}
     msg = json.dumps(msg)
     for connection in open_connections:
         connection.send(msg)
 
-stats_callback = PeriodicCallback(transmit_stats, 60000)
+stats_callback = PeriodicCallback(transmit_stats, 5000)
 
 
 ### Combine the SockJS & Flask components...
