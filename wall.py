@@ -65,7 +65,7 @@ def favicon():
 
 ### Twitter streaming search thread...
 
-search_targets = ["#ARGvsIRN"]
+search_targets = ["#GERvsGHA"]
 shutdown_event = Event()
 min_time_between_tweets = 5  # minimum number of seconds between tweets
 last_tweet = 0
