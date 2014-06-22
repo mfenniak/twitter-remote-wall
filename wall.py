@@ -69,7 +69,7 @@ def favicon():
 
 # FIXME: Support filter_level parameter (none, low, medium, high) to filter tweets server-side
 # FIXME: Support language parameter (eg. "en") to filter tweets server-side
-search_targets = ["#GERvsGHA"]
+search_targets = ["#yyc"]
 shutdown_event = Event()
 
 # FIXME: A percentage value might be better, and tuneable on the settings page?
