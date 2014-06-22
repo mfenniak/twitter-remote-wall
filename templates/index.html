@@ -4,12 +4,33 @@
     <head>
         <title>Twitter Magic</title>
         <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+        <style type="text/css">
+
+/* Sticky footer styles
+-------------------------------------------------- */
+html {
+  position: relative;
+  min-height: 100%;
+}
+body {
+  /* Margin bottom by footer height */
+  margin-bottom: 60px;
+}
+#footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  /* Set the fixed height of the footer here */
+  height: 30px;
+  background-color: #f5f5f5;
+}
+
+        </style>
     </head>
 
     <body style="padding-top: 1em">
 
         <div class="container-fluid">
-
             <!-- ko foreach: rows -->
                 <div class="row" style="padding-bottom: 1em">
 
@@ -23,11 +44,18 @@
 
                 </div>
             <!-- /ko -->
-
         </div>
 
-        <div class="pull-right">
-            <div><span data-bind="text: Math.round(tweets_per_minute())">1000</span> tweets/min (<span data-bind="text: Math.round(displayed_tweets_per_minute())">10</span> tweets/min filtered)</div>
+        <div id="footer">
+          <div class="pull-right" style="padding-top: 5px; padding-right: 1em">
+            <div>
+                <span data-bind="text: Math.round(tweets_per_minute())">1000</span> tweets/min (<span data-bind="text: Math.round(displayed_tweets_per_minute())">10</span> tweets/min filtered)
+
+                <span data-bind="visible: state() == 'connected'" class="glyphicon glyphicon-ok"></span>
+                <span data-bind="visible: state() == 'disconnected'" class="glyphicon glyphicon-remove"></span>
+                <span data-bind="visible: state() == 'connecting'" class="glyphicon glyphicon-signal"></span>
+            </div>
+          </div>
         </div>
 
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
@@ -41,6 +69,7 @@ function Model() {
     self.tweets = ko.observableArray([]);
     self.tweets_per_minute = ko.observable(0);
     self.displayed_tweets_per_minute = ko.observable(0);
+    self.state = ko.observable("connecting");
     self.rows = ko.computed(function() {
         var row_width = 4;
         var rows = [];
@@ -60,27 +89,35 @@ function Model() {
 }
 var model = new Model();
 
-var sock = new SockJS('/search');
-sock.onopen = function() {
-};
+function reconnect() {
+    model.state("connecting");
 
-sock.onmessage = function(e) {
-    var msg = JSON.parse(e.data);
-    if (msg.action == "tweet") {
-        var tweet = msg.tweet;
-        model.tweets.unshift(tweet);
-        while (model.tweets().length > 20) {
-            model.tweets.pop();
+    var sock = new SockJS('/search');
+    sock.onopen = function() {
+        model.state("connected");
+    };
+
+    sock.onmessage = function(e) {
+        var msg = JSON.parse(e.data);
+        if (msg.action == "tweet") {
+            var tweet = msg.tweet;
+            model.tweets.unshift(tweet);
+            while (model.tweets().length > 20) {
+                model.tweets.pop();
+            }
+        } else if (msg.action == "stats") {
+            model.tweets_per_minute(msg.tweets_per_minute);
+            model.displayed_tweets_per_minute(msg.displayed_tweets_per_minute);
         }
-    } else if (msg.action == "stats") {
-        model.tweets_per_minute(msg.tweets_per_minute);
-        model.displayed_tweets_per_minute(msg.displayed_tweets_per_minute);
-    }
-};
+    };
 
-sock.onclose = function() {
-};
+    sock.onclose = function() {
+        model.state("disconnected");
+        setTimeout(reconnect, 5000);
+    };
+}
 
+reconnect();
 ko.applyBindings(model);
 
         </script>
