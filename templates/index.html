@@ -49,6 +49,8 @@ body {
         <div id="footer">
           <div class="pull-right" style="padding-top: 5px; padding-right: 1em">
             <div>
+                <span id="sparkline">Loading...</span>
+
                 <span data-bind="text: Math.round(tweets_per_minute())">1000</span> tweets/min (<span data-bind="text: Math.round(displayed_tweets_per_minute())">10</span> tweets/min filtered)
 
                 <span data-bind="visible: state() == 'connected'" class="glyphicon glyphicon-ok"></span>
@@ -62,12 +64,14 @@ body {
         <script src="http://cdn.sockjs.org/sockjs-0.3.min.js"></script>
         <script src="http://cdnjs.cloudflare.com/ajax/libs/knockout/3.1.0/knockout-min.js"></script>
         <script src="{{ url_for('static', filename='js/bootstrap.min.js') }} "></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/jquery-sparklines/2.1.2/jquery.sparkline.min.js"></script>
         <script type="text/javascript">
 
 function Model() {
     var self = this;
     self.tweets = ko.observableArray([]);
     self.tweets_per_minute = ko.observable(0);
+    self.tweets_per_minute_history = [];
     self.displayed_tweets_per_minute = ko.observable(0);
     self.state = ko.observable("connecting");
     self.rows = ko.computed(function() {
@@ -102,12 +106,17 @@ function reconnect() {
         if (msg.action == "tweet") {
             var tweet = msg.tweet;
             model.tweets.unshift(tweet);
-            while (model.tweets().length > 20) {
+            while (model.tweets().length > 16) {
                 model.tweets.pop();
             }
         } else if (msg.action == "stats") {
             model.tweets_per_minute(msg.tweets_per_minute);
             model.displayed_tweets_per_minute(msg.displayed_tweets_per_minute);
+            model.tweets_per_minute_history.push(msg.tweets_per_minute);
+            while (model.tweets_per_minute_history.length > 20) {
+                model.tweets_per_minute_history.shift();
+            }
+            $('#sparkline').sparkline(model.tweets_per_minute_history, { width: model.tweets_per_minute_history.length*2, tooltipSuffix: ' tweets per min' });
         }
     };
 
