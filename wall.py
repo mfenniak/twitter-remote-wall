@@ -10,6 +10,7 @@ import json
 import time
 import os
 import datetime
+import HTMLParser
 
 # TODO
 #  * add time since tweet into HTML output
@@ -22,8 +23,8 @@ import datetime
 def process_status(status):
     status = dict(status)
     # Not sure why, but tweets froms treaming search seem to come with HTML-encoded
-    # ampersand entities...
-    status["text"] = status.get("text", "").replace("&amp;", "&")
+    # entities... &amp; and &lt; at least.  Unescape them all.
+    status["text"] = HTMLParser.HTMLParser().unescape(status.get("text", ""))
     return status
 
 
@@ -66,8 +67,12 @@ def favicon():
 
 ### Twitter streaming search thread...
 
+# FIXME: Support filter_level parameter (none, low, medium, high) to filter tweets server-side
+# FIXME: Support language parameter (eg. "en") to filter tweets server-side
 search_targets = ["#GERvsGHA"]
 shutdown_event = Event()
+
+# FIXME: A percentage value might be better, and tuneable on the settings page?
 min_time_between_tweets = 5  # minimum number of seconds between tweets
 last_tweet = 0
 
