@@ -75,7 +75,7 @@ def reconfigure():
         filter_level = request.form.get("filterLevel", "none")
         english_only = request.form.get("languageEnglish", "off") == "on"
         start_streaming_search()
-        return redirect(url_for('index'))
+        return redirect(url_for('reconfigure'))
     else:
         return render_template("reconfigure.html",
             search_targets=search_targets,
