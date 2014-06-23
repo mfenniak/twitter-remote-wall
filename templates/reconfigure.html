@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>Twitter Magic</title>
+        <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+        <style type="text/css">
+        </style>
+    </head>
+
+    <body style="padding-top: 1em">
+
+        <div class="container">
+            <form role="form" method="POST">
+                <div class="form-group">
+                    <label for="searchTerms">Search terms (comma-separated)</label>
+                    <input class="form-control" id="searchTerms" name="searchTerms" placeholder="Enter email" value="{{ search_targets|join(',') }}">
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="languageEnglish" {% if english_only %}checked{% endif %}>
+                        Only English Tweets
+                    </label>
+                </div>
+                <div class="radio">
+                    <label>
+                        <input type="radio" name="filterLevel" id="filterLevelNone" value="none" {% if filter_level == "none" %}checked{% endif %}>
+                        No filtering
+                    </label>
+                </div>
+                <div class="radio">
+                    <label>
+                        <input type="radio" name="filterLevel" id="filterLevelLow" value="low" {% if filter_level == "low" %}checked{% endif %}>
+                        Filter level LOW
+                    </label>
+                </div>
+                <div class="radio">
+                    <label>
+                        <input type="radio" name="filterLevel" id="filterLevelMedium" value="medium" {% if filter_level == "medium" %}checked{% endif %}>
+                        Filter level MEDIUM
+                    </label>
+                </div>
+                <div class="radio">
+                    <label>
+                        <input type="radio" name="filterLevel" id="filterLevelHigh" value="high" {% if filter_level == "high" %}checked{% endif %}>
+                        Filter level HIGH
+                    </label>
+                </div>
+                <p>
+                    <button type="submit" class="btn btn-primary btn-lg">Save Settings</button>
+                </p>
+            </form>
+        </div>
+
+    </body>
+</html>

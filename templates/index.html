@@ -56,7 +56,8 @@ body {
                 <span data-bind="visible: state() == 'connected'" class="glyphicon glyphicon-ok"></span>
                 <span data-bind="visible: state() == 'disconnected'" class="glyphicon glyphicon-remove"></span>
                 <span data-bind="visible: state() == 'connecting'" class="glyphicon glyphicon-signal"></span>
-            </div>
+
+                <a href="{{ url_for('reconfigure') }}"><span class="glyphicon glyphicon-cog"></span></div>
           </div>
         </div>
 
