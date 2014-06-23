@@ -108,7 +108,9 @@ def start_streaming_search():
     subprocess_to_main1, subprocess_to_main2 = Pipe(duplex=False)
     search_subprocess = Process(target=streaming_search, kwargs={
         "subprocess_to_main": subprocess_to_main2,
-        "search_targets": search_targets
+        "search_targets": search_targets,
+        "filter_level": filter_level,
+        "english_only": english_only
     })
     search_subprocess.start()
     IOLoop.instance().add_handler(
@@ -130,7 +132,7 @@ class MyStreamClient(StreamClient):
     def get_json_object_hook(data):
         return data
 
-def streaming_search(subprocess_to_main, search_targets):
+def streaming_search(subprocess_to_main, search_targets, filter_level, english_only):
     last_tweet = 0
     search_target = ",".join(search_targets)
     client = MyStreamClient(CONSUMER_KEY,
@@ -139,17 +141,19 @@ def streaming_search(subprocess_to_main, search_targets):
                         ACCESS_TOKEN_SECRET)
     while True:
         try:
-            resource = client.stream.statuses.filter.post(track=search_target)
+            kwargs = {"track": search_target, "filter_level": filter_level}
+            if english_only:
+                kwargs["language"] = "en"
+            print repr(kwargs)
+            resource = client.stream.statuses.filter.post(**kwargs)
             for status in resource.stream():
                 subprocess_to_main.send({"action": "tweet"})
 
-                if status.get("lang") != "en":
-                    # Ignore non-English tweets
-                    continue
                 if status.get("retweeted_status") != None:
                     # Ignore retweets
                     continue
 
+                # Filter displayed tweets by min_time_between_tweets
                 t = time.time()
                 if (t - last_tweet) < min_time_between_tweets:
                     continue
