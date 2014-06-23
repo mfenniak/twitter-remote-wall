@@ -117,10 +117,13 @@ def start_streaming_search():
         IOLoop.READ)
 
 def terminate_streaming_search():
+    print "Begin terminate..."
     IOLoop.instance().remove_handler(subprocess_to_main1.fileno())
     search_subprocess.terminate()
     subprocess_to_main1.close()
     subprocess_to_main2.close()
+    search_subprocess.join()
+    print "Terminate complete."
 
 class MyStreamClient(StreamClient):
     @staticmethod
